@@ -1,2 +1,2 @@
-# treeconstructive-supertagging
-A collection of tree-structured constructive CCG supertaggers.
+# Tree-structured Constructive Supertagging
+Coming soon!
