@@ -1,0 +1,7 @@
+{
+  "name": "k+19_rebank",
+  "tagset": "atomic_rebank.json",
+  "decoder": "k+19",
+  "complete": true,
+  "max_len": 100
+}

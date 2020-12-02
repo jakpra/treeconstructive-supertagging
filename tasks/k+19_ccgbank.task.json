@@ -1,0 +1,7 @@
+{
+  "name": "k+19_ccgbank",
+  "tagset": "atomic_ccgbank.json",
+  "decoder": "k+19",
+  "complete": true,
+  "max_len": 100,
+}

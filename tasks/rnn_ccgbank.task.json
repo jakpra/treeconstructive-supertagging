@@ -1,0 +1,8 @@
+{
+  "name": "rnn_ccgbank",
+  "tagset": "atomic_ccgbank.json",
+  "decoder": "rnn",
+  "complete": true,
+  "max_len": 128,
+  "attention": false
+}

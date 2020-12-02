@@ -1,0 +1,11 @@
+{
+  "name": "mlp1_rebank",
+  "tagset": "all_rebank.json",
+  "atomic_tagset": "atomic_rebank.json",
+  "grow_labels": [],
+  "complete": false,
+  "max_address_depth": 0,
+  "max_mapped_address_depth": 6,
+  "decoder": "mlp",
+  "is_sexpr": false
+}

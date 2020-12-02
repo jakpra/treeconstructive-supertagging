@@ -1,0 +1,9 @@
+{
+  "name": "addrmlp_att_rebank",
+  "tagset": "atomic_rebank.json",
+  "grow_labels": [37, 38],
+  "complete": true,
+  "max_address_depth": 6,
+  "decoder": "addrmlp",
+  "enc_attention": true
+}

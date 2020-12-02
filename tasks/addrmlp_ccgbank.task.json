@@ -1,0 +1,9 @@
+{
+  "name": "addrmlp_ccgbank",
+  "tagset": "atomic_ccgbank.json",
+  "grow_labels": [34, 35],
+  "complete": true,
+  "max_address_depth": 6,
+  "decoder": "addrmlp",
+  "attention": false
+}

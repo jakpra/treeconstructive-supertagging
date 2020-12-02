@@ -1,0 +1,11 @@
+{
+  "name": "mlp10_att_ccgbank",
+  "tagset": "thr_10_ccgbank.json",
+  "grow_labels": [],
+  "complete": false,
+  "max_address_depth": 0,
+  "max_mapped_address_depth": 6,
+  "decoder": "mlp",
+  "enc_attention":  true,
+  "is_sexpr": false
+}

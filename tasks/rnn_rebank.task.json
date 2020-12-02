@@ -1,0 +1,8 @@
+{
+  "name": "rnn_rebank",
+  "tagset": "atomic_rebank.json",
+  "decoder": "rnn",
+  "complete": true,
+  "max_len": 128,
+  "attention": false
+}
