@@ -20,7 +20,7 @@ from ..util.address_map import AtomicAddressMap, DummyAddressMap
 
 
 class MLPDecoder(NN):
-    def __init__(self, hidden_dim, context_hidden_dim, labels, reuse_embedding=True,
+    def __init__(self, hidden_dim, context_hidden_dim, labels,
                  atomic_labels=None, mapped_grow_labels=None, max_mapped_depth=6,
                  enc_attention=False, dec_attention=False, dropout=0.2, n_hidden=2, is_sexpr=False,
                  device=torch.device('cpu')):
@@ -30,10 +30,10 @@ class MLPDecoder(NN):
         super().__init__()
 
         self.max_depth = 0
-        self.max_width = 2**max_depth
-        self.address_dim = 2**(max_depth + 1) - 1
+        self.max_width = 2**self.max_depth
+        self.address_dim = 2**(self.max_depth + 1) - 1
 
-        self.max_mapped_depth = max_depth if max_mapped_depth is None else max_mapped_depth
+        self.max_mapped_depth = self.max_depth if max_mapped_depth is None else max_mapped_depth
         self.max_mapped_width = 2 ** self.max_mapped_depth
         self.mapped_address_dim = 2 ** (self.max_mapped_depth + 1) - 1
 
@@ -43,8 +43,7 @@ class MLPDecoder(NN):
         self.activation = F.gelu  # torch.nn.ReLU()  # TODO: try cube activation
         self.norm = F.log_softmax
         self.enc_attention = enc_attention
-        self.dec_attention = dec_attention
-        self.reuse_embedding = reuse_embedding
+        self.dec_attention = False
         self.attention = enc_attention or dec_attention
         self.oracle = oracle
 
@@ -59,16 +58,7 @@ class MLPDecoder(NN):
         for _ in range(n_hidden):
             self.intermediate.append(torch.nn.Linear(self.hidden_dim, self.hidden_dim))
 
-        if (self.dec_attention or not self.featurized) and self.max_depth > 0:
-            self.embedding_matrix = torch.nn.Parameter(torch.rand(self.output_dim+1, self.hidden_dim, device=device) * 0.02)
-            self.output_embedder = lambda x: F.embedding(x, self.embedding_matrix, padding_idx=self.output_dim,
-                                                         scale_grad_by_freq=True)
-            if self.reuse_embedding:
-                self.O = lambda x: x @ (self.embedding_matrix.transpose(1, 0) + 1e-10)
-            else:
-                self.O = torch.nn.Linear(self.hidden_dim, self.output_dim, bias=False)
-        else:
-            self.O = torch.nn.Linear(self.hidden_dim, self.output_dim, bias=False)
+        self.O = torch.nn.Linear(self.hidden_dim, self.output_dim, bias=False)
 
         self.dropout = torch.nn.Dropout(dropout)
         self.layer_norm = torch.nn.LayerNorm(self.context_hidden_dim, elementwise_affine=False)
@@ -84,7 +74,6 @@ class MLPDecoder(NN):
         self.grow_labels = []
         self.mapped_grow_labels = torch.tensor(grow_labels if mapped_grow_labels is None else mapped_grow_labels,
                                                dtype=torch.long, device=device)
-        self._address_mask = torch.tensor(range(self.address_dim), dtype=torch.float32, device=device) + 1
 
         self.device = device
 
@@ -223,15 +212,8 @@ class MLPDecoder(NN):
         atom_mask[:, 0] = 1 if word_mask is None else word_mask.view(-1)
         states['atom_mask'] = atom_mask
 
-
-        #TODO: remove
-        states['h_update_tracker'] = set()
-
         x = x.unsqueeze(1)
 
-        address_mask = torch.floor(torch.log2(self._address_mask)) == d
-        n_addresses = torch.sum(address_mask).item()
-        n_children = 2 * n_addresses
         total_batch_size = x.size(0)
 
         mask = states['mask']
@@ -240,41 +222,22 @@ class MLPDecoder(NN):
         # predict node label
 
         h = states['h']
-        current_h = h[:, address_mask, :]
-
-        if self.featurized:
-            current_h = x.expand(-1, n_addresses, -1) + current_h
-            current_h = self.layer_norm(current_h)
+        current_h = h[:, 0, :]
 
         if y is not None and self.oracle != 'global':
             y = states['y']
 
-        with torch.no_grad():
-            cumulative_argmaxes = (torch.argmax(y_hat, dim=2) if y is None else y.view(total_batch_size, -1))[:, :2 ** d - 1]
-            cumulative_argmaxes[~mask[:, :2 ** d - 1]] = self.out_to_ix[PAD]
-
         if self.attention:
-            attn_query = current_h.view(batch_size, seq_len * n_addresses, self.hidden_dim)
+            attn_query = current_h.view(batch_size, seq_len, self.hidden_dim)
 
             if self.enc_attention:
                 enc_state = x.view(batch_size, seq_len, self.context_hidden_dim)
                 enc_attention_weights = torch.matmul(attn_query, enc_state.transpose(1, 2))
-                # states['enc_attn'][:, address_mask, :] = enc_attention_weights.view(total_batch_size, n_addresses, seq_len)
+                # states['enc_attn'][:, 0, :] = enc_attention_weights.view(total_batch_size, 1, seq_len)
                 enc_attention_weights = F.softmax(enc_attention_weights, dim=2)
-                enc_attention_values = torch.matmul(enc_attention_weights, enc_state).view(total_batch_size, n_addresses,
+                enc_attention_values = torch.matmul(enc_attention_weights, enc_state).view(total_batch_size, 1,
                                                                                            self.context_hidden_dim)
                 current_h = (current_h + enc_attention_values)
-
-            if self.dec_attention and d >= 1:
-                dec_state = self.output_embedder(cumulative_argmaxes.clone())
-
-                dec_state = dec_state.view(batch_size, seq_len * (2 ** d - 1), self.context_hidden_dim)
-                dec_attention_weights = torch.matmul(attn_query, dec_state.transpose(1, 2))
-                # states['dec_attn'][:, address_mask, :, :2 ** d - 1] = dec_attention_weights.view(total_batch_size, n_addresses, seq_len, (2 ** d - 1))
-                dec_attention_weights = F.softmax(dec_attention_weights, dim=2)
-                dec_attention_values = torch.matmul(dec_attention_weights, dec_state).view(total_batch_size, n_addresses,
-                                                    self.context_hidden_dim)
-                current_h = (current_h + dec_attention_values)
 
             current_h = self.layer_norm(current_h)
 
@@ -283,12 +246,7 @@ class MLPDecoder(NN):
 
         current_o = self.O(current_h)
 
-        if (self.dec_attention or not self.featurized) and self.reuse_embedding and self.max_depth > 0:
-            current_y = current_o[:, :, :-1]
-        else:
-            current_y = current_o
-
-        y_hat[:, address_mask, :] = current_y
+        y_hat[:, 0, :] = current_y
         states['y_hat'] = y_hat
 
         return states

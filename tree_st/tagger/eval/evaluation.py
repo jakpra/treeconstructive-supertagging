@@ -11,12 +11,12 @@ from collections import Counter, defaultdict
 
 from tqdm import tqdm
 
-from ccg.representation.category import Slashes as sl
-from ccg.representation.derivation import Derivation
-from ccg.util.reader import AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader, SCategoryReader
-from ccg.util.functions import harmonic_mean
-from ccg.util.statistics import print_counter_stats
-from ccg.parser.scoring.nn import UNK
+from tree_st.ccg.category import Slashes as sl
+from tree_st.ccg.derivation import Derivation
+from tree_st.util.reader import AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader, SCategoryReader
+from tree_st.util.functions import harmonic_mean
+from tree_st.util.statistics import print_counter_stats
+from tree_st.tagger.nn import UNK
 
 
 class Evaluator:

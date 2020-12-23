@@ -19,7 +19,6 @@ from .addrmlp import AddrMLPDecoder
 from .kogkalidis_transformer import TransformerSeqDecoder as KTransformerSeqDecoder
 from .encoders.span import SpanEncoder, RNNSpanEncoder, BERTSpanEncoder, RoBERTaSpanEncoder, LookupSpanEncoder
 
-from ..util import argparse
 from ..util.reader import CategoryReader
 from ..util.loader import get_target_vocab, load_pretrained_bert_jsonl
 from ..util.mode import Mode

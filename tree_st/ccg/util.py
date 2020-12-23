@@ -4,10 +4,8 @@
 @license: Apache 2.0
 '''
 
-from .category import InvalidCategoryError
-
-from ccg.representation.category import Category
-from ccg.util.reader import SCategoryReader
+from .category import Category, InvalidCategoryError
+from ..util.reader import SCategoryReader
 
 
 def sexpr_nodeblock_to_cat(nodeblock: set, binary=True, validate=True):
