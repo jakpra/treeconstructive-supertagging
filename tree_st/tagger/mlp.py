@@ -246,7 +246,7 @@ class MLPDecoder(NN):
 
         current_o = self.O(current_h)
 
-        y_hat[:, 0, :] = current_y
+        y_hat[:, 0, :] = current_o
         states['y_hat'] = y_hat
 
         return states
