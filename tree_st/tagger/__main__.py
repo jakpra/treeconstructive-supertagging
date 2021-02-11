@@ -21,7 +21,7 @@ from ..util.loader import load_derivations, load_supertags
 from ..util.mode import Mode
 from ..util.functions import bottom_up, top_down, left_corner
 from ..util.statistics import print_counter_stats
-from ..util.reader import CategoryReader, DerivationsReader, AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader
+from ..util.reader import CategoryReader, DerivationsReader, AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader, PlainTextDerivationsReader
 
 from ..ccg.category import ATOMIC, ATOMIC_WITH_ATTR, AtomicCategories as ac
 from ..ccg.derivation import Derivation
@@ -319,6 +319,8 @@ if testing_format == 'ast':
     dr = ASTDerivationsReader
 elif testing_format == 'stagged':
     dr = StaggedDerivationsReader
+elif testing_format == 'txt':
+    dr = PlainTextDerivationsReader
 else:
     dr = AUTODerivationsReader
 

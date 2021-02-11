@@ -16,7 +16,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 import tree_st.util.argparse
-from .reader import AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader, DependenciesReader
+from .reader import AUTODerivationsReader, ASTDerivationsReader, StaggedDerivationsReader, PlainTextDerivationsReader, DependenciesReader
 from .functions import *
 from ..tagger.nn import UNK, PAD, START, END
 
@@ -56,6 +56,8 @@ def load_supertags(filepaths, supertagger, format='auto', ids=None,
         dr = ASTDerivationsReader
     elif format == 'stagged':
         dr = StaggedDerivationsReader
+    elif format == 'txt':
+        dr = PlainTextDerivationsReader
     else:
         dr = AUTODerivationsReader
 

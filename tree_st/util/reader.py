@@ -344,6 +344,20 @@ class StaggedDerivationReader(DerivationReader):
         return self.derivation
 
 
+class PlainTextDerivationReader(DerivationReader):
+    def read(self, s: str, **kwargs) -> Derivation:
+        del kwargs
+        if s is None or not s.strip():
+            return None
+        lexical = []
+        for word in s.strip().split():
+            dummy_pos = 'X'
+            dummy_cat = Category('X')
+            lexical.append(DerivationLeafNode(self.derivation, dummy_cat, dummy_pos, dummy_pos, word, dummy_cat))
+        self.derivation.root = DerivationTreeNode(self.derivation, None, 0, lexical)
+        return self.derivation
+
+
 class DependencyReader(TreeReader):
     def __init__(self):
         self.cr = CategoryReader()
@@ -440,11 +454,27 @@ class StaggedDerivationsReader(DerivationsReader):
         self.f = open(self.filename)
         line = self.readline()
         while line.startswith('#') or not line:
-            start = self.f.tell()
+            start = self.f.tell() + 1
             line = self.readline()
         self.close()
         self.f = open(self.filename)
-        self.f.seek(start+1)
+        self.f.seek(start)
+
+
+class PlainTextDerivationsReader(DerivationsReader):
+    def __init__(self, filename, **kwargs):
+        del kwargs
+        super().__init__(filename)
+        self.dr = PlainTextDerivationReader
+        start = 0
+        self.f = open(self.filename)
+        line = self.readline()
+        while line.startswith('#') or not line:
+            start = self.f.tell() + 1
+            line = self.readline()
+        self.close()
+        self.f = open(self.filename)
+        self.f.seek(start)
 
 
 class ASTDerivationsReader(DerivationsReader):
@@ -455,11 +485,11 @@ class ASTDerivationsReader(DerivationsReader):
         self.f = open(self.filename, errors='ignore', encoding='utf-8')
         line = self.readline()
         while line.startswith(':-') or not line:
-            start = self.f.tell()
+            start = self.f.tell() + 1
             line = self.readline()
         self.close()
         self.f = open(self.filename, errors='ignore', encoding='utf-8')
-        self.f.seek(start+1)
+        self.f.seek(start)
 
     def next(self, validate=True):
         self.i += 1

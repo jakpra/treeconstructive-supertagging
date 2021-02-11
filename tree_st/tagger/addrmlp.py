@@ -120,7 +120,7 @@ class AddrMLPDecoder(NN):
                         if out in self.out_to_ix:
                             _nb.append(self.out_to_ix[out])
                         else:
-                            _nb.append(self.out_to_ix[UNK])
+                            _nb.append(self.out_to_ix.get(UNK, len(self.out_to_ix)))
                     except KeyError:
                         print(f'a={a}, nb={nb}, self.out_to_ix={self.out_to_ix}', file=sys.stderr)
                         raise
