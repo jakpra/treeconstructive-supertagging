@@ -8,7 +8,7 @@ Complete README coming soon! Please reach out with any questions (email on my [w
 
 Use the following code snippet to load derivations from files in CCGbank's *.auto format:
 
-    from tree_set.util.reader import DerivationsReader
+    from tree_st.util.reader import DerivationsReader
     
     dr = DerivationsReader('sample_data/wsj_0001.auto')
     derivations = dr.read_all()
